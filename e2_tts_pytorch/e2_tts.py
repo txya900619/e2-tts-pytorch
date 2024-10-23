@@ -23,12 +23,11 @@ from beartype import beartype
 
 import torch
 import torch.nn.functional as F
-from torch import nn, tensor, Tensor, from_numpy
+from torch import nn, tensor, Tensor
 from torch.nn import Module, ModuleList, Sequential, Linear
 from torch.nn.utils.rnn import pad_sequence
 
 import torchaudio
-from torchaudio.functional import DB_to_amplitude
 from torchdiffeq import odeint
 
 import einx
@@ -829,7 +828,7 @@ class DurationPredictor(Module):
 
         if exists(text):
             if isinstance(text, list):
-                text = list_str_to_tensor(text).to(device)
+                text = self.tokenizer(text).to(device)
                 assert text.shape[0] == batch
 
             text_embed = self.embed_text(text, seq_len)
@@ -1167,7 +1166,7 @@ class E2TTS(Module):
 
             audio = []
             for mel, one_mask in zip(out, mask):
-                one_out = DB_to_amplitude(mel[one_mask], ref = 1., power = 0.5)
+                one_out = mel[one_mask]
 
                 one_out = rearrange(one_out, 'n d -> 1 d n')
                 one_audio = self.vocos.decode(one_out)
